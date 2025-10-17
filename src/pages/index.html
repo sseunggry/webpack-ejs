@@ -18,8 +18,6 @@
     </nav>
   </div>
 
-	<%- include('../components/footer.ejs') %>
-
 	<% const name1 = '홍길동'; %>
 	<h1><%= name1 %></h1>
 
@@ -28,7 +26,6 @@
 	
 	<% const name3 = '홍길동12345645'; %>
 	<h1><%= name3 %></h1>
-	
 
 	<% condition = false; %>
 	<% if (condition) { %>
@@ -39,11 +36,17 @@
 
 	<% const array2 = ['menu1', 'menu2', 'menu3', 'menu4']; %>
 	<ul>
+
+
+		
 		<% for( let index = 0; index < array2.length; index++ ) { %>
 			<% const $i = array2[index] %>
 			<li class="ico-<%= $i %>"><%= $i %></li>
 		<% } %>
 	</ul>
 
+	<%- include('../components/footer.ejs') %>
+
+	
 </body>
 </html>

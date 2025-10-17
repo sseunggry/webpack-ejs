@@ -4,6 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const glob = require('glob');
+const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -18,7 +19,7 @@ const htmlPages = glob.sync('./src/pages/**/*.html');
 
 module.exports = {
   entry: {
-		// main: './src/main.js',
+		// main: './src/style.js',
 		...scssEntries,
 	},  // 실제 JS 엔트리 파일
   output: {
@@ -26,6 +27,10 @@ module.exports = {
     filename: 'assets/js/[name].js',
 		publicPath: '/',
     clean: true,
+		assetModuleFilename: (pathData) => {
+      const filepath = path.dirname(pathData.filename).split('/').slice(1).join('/');
+      return `${filepath}/[name][ext]`; // 예: src/assets/images/logo.png -> assets/images/logo.png
+    },
   },
   target: 'web',
   module: {
@@ -33,30 +38,55 @@ module.exports = {
       {
         test: /\.html$/,
         use: [
-          'html-loader',      // ejs 처리 후 HTML 소스를 가져오기 위해 필요
+					{
+            loader: 'html-loader',
+            options: {
+              sources: {
+								urlFilter: (attribute, value, resourcePath) => {
+									if (/\.(css|js)$/.test(value)) {
+										return false;
+									}
+									return true;
+								},
+							}
+            }
+          },
+					// {
+					// 	loader: 'ejs-plain-loader',
+					// 	options: {
+					// 		async: true, // 비동기 지원 (optional)
+					// 	}
+					// }
           'ejs-plain-loader', // EJS를 순수 HTML로 변환
         ]
       },
       {
         test: /\.scss$/,
         use: [
-          isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
-          // MiniCssExtractPlugin.loader,  // CSS 파일로 분리
+          MiniCssExtractPlugin.loader,  // CSS 파일로 분리
           'css-loader',
           'sass-loader'
         ],
       },
-      {
-        test: /\.(png|jpe?g|gif|svg|woff2?|ttf|eot)$/,
+			{
+        test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource',
         generator: {
-          filename: 'assets/[name][ext]', // 이미지/폰트는 이름 유지하며 복사
+          filename: 'assets/images/[name][ext]', // 이미지 파일 경로 지정
+        },
+      },
+      {
+        test: /\.(woff2?|ttf|eot|otf)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/fonts/[name][ext]', // 폰트 파일 경로 지정
         },
       },
     ],
   },
   plugins: [
-    isProduction && new MiniCssExtractPlugin({
+		new RemoveEmptyScriptsPlugin(),
+    new MiniCssExtractPlugin({
       filename: 'assets/css/[name].css',
     }),
     // HTML로 생성
@@ -66,6 +96,7 @@ module.exports = {
         template: file,
         filename: `html/${name}.html`, // dist/pages/ 폴더 내에 출력
         inject: true,
+				chunks: [],
         minify: false,
       });
     }),
@@ -73,8 +104,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
 				{ from: 'src/assets/js', to: 'assets/js', noErrorOnMissing: true },
-        { from: 'src/assets/images', to: 'assets/images', noErrorOnMissing: true },
-        { from: 'src/assets/fonts', to: 'assets/fonts',  noErrorOnMissing: true },
+        // { from: 'src/assets/images', to: 'assets/images', noErrorOnMissing: true },
+        // { from: 'src/assets/fonts', to: 'assets/fonts',  noErrorOnMissing: true },
       ],
     }),
   ],
