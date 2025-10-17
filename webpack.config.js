@@ -11,7 +11,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 const scssEntries = {};
 glob.sync('./src/assets/scss/*.scss').forEach((file) => {
   const name = path.basename(file, '.scss');
-  // scssEntries[name] = file;
   scssEntries[name] = `./${file.replace(/^\.\//, '')}`;
 });
 
@@ -57,9 +56,6 @@ module.exports = {
     ],
   },
   plugins: [
-    // new MiniCssExtractPlugin({
-    //   filename: 'assets/css/[name].css',
-    // }),
     isProduction && new MiniCssExtractPlugin({
       filename: 'assets/css/[name].css',
     }),
@@ -69,7 +65,7 @@ module.exports = {
       return new HtmlWebpackPlugin({
         template: file,
         filename: `html/${name}.html`, // dist/pages/ 폴더 내에 출력
-        inject: false, // JS 자동 주입 안함
+        inject: true,
         minify: false,
       });
     }),
@@ -100,17 +96,11 @@ module.exports = {
     static: {
       directory: path.resolve(__dirname, 'dist'),
     },
-		// devMiddleware: {
-		// 	publicPath: '/',
-		// },
     port: 4000,
     open: ['/html/index.html'],
-    // liveReload: true,
     hot: true,
 		watchFiles: ['src/**/*'],
-    // watchFiles: ['src/**/*.html', 'src/**/*.ejs'],
   },
-  // mode: 'development', // 배포시 'production'으로 변경
-  mode: isProduction ? 'production' : 'development',
+  mode: isProduction ? 'production' : 'development',  // mode: 'development', // 배포시 'production'으로 변경
 };
 
